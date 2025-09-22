@@ -1,75 +1,206 @@
-# app.py
+# interface.py
 import streamlit as st
-import os
+import json
+import io
+import base64
+import requests
 from PIL import Image
 from pathlib import Path
 
+
+# =========================
+# Configurações & Defaults
+# =========================
+DEFAULT_URL_WMS   = "https://projetos-logistica.app.n8n.cloud/webhook/cadastro-usuarios"
+DEFAULT_URL_LOCAL = "https://projetos-logistica.app.n8n.cloud/webhook/localizacao"
+DEFAULT_CONTATO   = "projetos.logistica@somagrupo.com.br"
+
+APP_DIR = Path(__file__).parent
+LOCAL_LOGO_PATH = APP_DIR / "assets" / "logo.png"  # fallback local
+
+# ===================================
+# Helpers de integração com GitHub
+# ===================================
+def _get_github_cfg() -> dict:
+    """Lê a seção [github] do secrets.toml de forma segura."""
+    try:
+        cfg = st.secrets.get("github", {})
+        if not isinstance(cfg, dict):
+            return {}
+        return cfg
+    except Exception:
+        return {}
+
+def _build_raw_url(owner: str, repo: str, branch: str, path: str, base_raw_host: str | None):
+    """Monta URL de conteúdo bruto para GitHub.com ou Enterprise."""
+    path = path.lstrip("/")
+    if base_raw_host:
+        # Ex.: https://raw.github.seudominio.com/org/repo/branch/path
+        return f"https://{base_raw_host}/{owner}/{repo}/{branch}/{path}"
+    # GitHub.com
+    return f"https://raw.githubusercontent.com/{owner}/{repo}/{branch}/{path}"
+
+def gh_get_text(path: str) -> str | None:
+    """Busca arquivo de texto (ex.: JSON) no repositório corporativo."""
+    try:
+        cfg = _get_github_cfg()
+        owner = cfg.get("org")
+        repo = cfg.get("repo")
+        branch = cfg.get("branch", "main")
+        base_raw_host = cfg.get("base_raw_host")
+        token = cfg.get("token")
+
+        if not owner or not repo:
+            return None
+
+        url = _build_raw_url(owner, repo, branch, path, base_raw_host)
+        headers = {"Authorization": f"token {token}"} if token else {}
+        r = requests.get(url, headers=headers, timeout=20)
+        if r.status_code == 200:
+            return r.text
+        return None
+    except Exception:
+        return None
+
+def gh_get_bytes(path: str) -> bytes | None:
+    """Busca arquivo binário (ex.: PNG) no repositório corporativo."""
+    try:
+        cfg = _get_github_cfg()
+        owner = cfg.get("org")
+        repo = cfg.get("repo")
+        branch = cfg.get("branch", "main")
+        base_raw_host = cfg.get("base_raw_host")
+        token = cfg.get("token")
+
+        if not owner or not repo:
+            return None
+
+        url = _build_raw_url(owner, repo, branch, path, base_raw_host)
+        headers = {"Authorization": f"token {token}"} if token else {}
+        r = requests.get(url, headers=headers, timeout=20)
+        if r.status_code == 200:
+            return r.content
+        return None
+    except Exception:
+        return None
+
+def pil_to_base64(img: Image.Image) -> str:
+    """Converte PIL.Image em base64 (PNG)."""
+    buf = io.BytesIO()
+    img.save(buf, format="PNG")
+    return base64.b64encode(buf.getvalue()).decode("utf-8")
+
+# ===================================
+# Carrega config do repositório
+# ===================================
+URL_WMS = DEFAULT_URL_WMS
+URL_LOCAL = DEFAULT_URL_LOCAL
+CONTATO_EMAIL = DEFAULT_CONTATO
+
+config_text = gh_get_text("portal/config.json")
+if config_text:
+    try:
+        cfg_json = json.loads(config_text)
+        urls = cfg_json.get("urls", {})
+        URL_WMS   = urls.get("wms", DEFAULT_URL_WMS)
+        URL_LOCAL = urls.get("local", DEFAULT_URL_LOCAL)
+        CONTATO_EMAIL = cfg_json.get("contact_email", DEFAULT_CONTATO)
+    except Exception:
+        # mantém defaults em caso de erro de parsing
+        pass
+
+# ===================================
+# Carrega logo (repo corporativo -> local)
+# ===================================
+logo_img = None
+
+# 1) tenta remoto
+remote_bytes = gh_get_bytes("assets/logo.png")
+if remote_bytes:
+    try:
+        logo_img = Image.open(io.BytesIO(remote_bytes))
+    except Exception:
+        logo_img = None
+
+# 2) fallback local
+if logo_img is None and LOCAL_LOGO_PATH.exists():
+    try:
+        logo_img = Image.open(str(LOCAL_LOGO_PATH))
+    except Exception:
+        logo_img = None
+
+logo_b64 = pil_to_base64(logo_img) if logo_img else None
+
+# ===================================
+# Config do app (definir page_icon logo)
+# ===================================
 st.set_page_config(
     page_title="Portal Logística – Cadastros",
-    page_icon=None,   # vamos setar depois quando o arquivo existir
+    page_icon=logo_img if logo_img else None,
     layout="wide",
 )
 
-# Caminho absoluto baseado no arquivo atual
-APP_DIR = Path(__file__).parent
-LOGO_PATH = APP_DIR / "assets" / "logo.png"     # renomeie seu arquivo para logo.png (sem espaços)
-
-# Exibe o logo se existir
-if LOGO_PATH.exists():
-    st.image(str(LOGO_PATH), width=180)
-    # usar o mesmo arquivo como ícone da página
-    st.session_state["_page_icon_path"] = str(LOGO_PATH)
-else:
-    st.warning("Logo não encontrado em: " + str(LOGO_PATH))
-
-# (opcional) definir o ícone da aba após checar o arquivo
-if LOGO_PATH.exists():
-    # truque: reconfigurar o ícone sem reiniciar
-    from PIL import Image
-    try:
-        st._config.set_option("theme.base", st.get_option("theme.base"))  # no-op, força refresh de config
-    except Exception:
-        pass
-    st.set_page_config(page_icon=str(LOGO_PATH))
-
-
-# Esconde menu, header, footer e botões do shell do Streamlit Cloud (Fork/GitHub)
+# ===================================
+# Estilos (menos espaço, banner com logo, cards)
+# ===================================
 st.markdown("""
 <style>
-/* Menu (três pontinhos) e header */
-#MainMenu {visibility: hidden;}
-header {visibility: hidden;}
+/* ===== Reset / Base ===== */
+html, body, .main { background: #f8fafc; }
+.main .block-container { padding-top: 12px !important; } /* reduz espaçamento superior */
 
-/* Footer padrão ("Made with Streamlit") */
-footer {visibility: hidden;}
+/* Esconde elementos nativos */
+#MainMenu, header, footer,
+[data-testid="stToolbar"],
+.stApp [data-testid="stHeader"],
+.stApp [data-testid="baseLinkButton-footer"] { display: none !important; }
 
-/* Toolbar/topo do Streamlit Cloud (inclui botão Fork/GitHub) */
-[data-testid="stToolbar"] {visibility: hidden; height: 0; position: fixed;}
+/* ===== Banner/topbar ===== */
+.hero {
+  width: 100%;
+  min-height: 120px;
+  background: linear-gradient(180deg, #0b1220, #111827);
+  border-radius: 18px;
+  padding: 14px 18px;
+  box-shadow: 0 12px 28px rgba(2,6,23,.18), 0 2px 6px rgba(2,6,23,.12);
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: center;
+  gap: 18px;
+  border: 1px solid rgba(255,255,255,.06);
+}
+.hero .logo-wrap{
+  height: 72px;      /* ajuste fino da altura da logo */
+  max-width: 360px;  /* largura máxima sugerida */
+  display: flex; align-items: center;
+}
+.hero .logo{
+  width: 100%;
+  height: 100%;
+  object-fit: contain; /* use 'cover' se quiser preencher mesmo cortando */
+  filter: drop-shadow(0 6px 14px rgba(0,0,0,.25));
+}
+.hero .title{
+  color: #fff;
+  font-weight: 800;
+  line-height: 1.15;
+  margin: 0;
+  font-size: clamp(22px, 3.2vw, 34px);
+  letter-spacing: .2px;
+}
+.hero .subtitle{
+  color: rgba(255,255,255,.78);
+  margin-top: 4px;
+  font-size: clamp(13px, 1.6vw, 15.5px);
+}
 
-/* Banner da barra superior em alguns temas/deploys */
-.stApp [data-testid="stHeader"] {display: none;}
-
-/* Rodapé alternativo usado em versões recentes */
-.stApp [data-testid="baseLinkButton-footer"] {display: none;}
-</style>
-""", unsafe_allow_html=True)
-
-# ====== CONFIGURE AQUI (SUBSTITUA PELAS SUAS URLs) ======
-URL_WMS = "https://projetos-logistica.app.n8n.cloud/webhook/cadastro-usuarios"     # TODO: link GET do formulário de Cadastro de Usuário WMS
-URL_LOCAL = "https://projetos-logistica.app.n8n.cloud/webhook/localizacao" # TODO: link GET do formulário de Cadastro de Localização
-CONTATO_EMAIL = "projetos.logistica@somagrupo.com.br"
-# =========================================================
-
-# --- Estilo (cartões e botões) ---
-st.markdown("""
-<style>
+/* ===== Cards ===== */
 :root{
   --bg:#f8fafc; --card:#ffffff; --text:#0f172a; --muted:#64748b;
-  --accent:#1f2937; --ring:#2563eb; --shadow:0 10px 26px rgba(0,0,0,.08);
+  --accent:#111827; --ring:#2563eb; --shadow:0 10px 26px rgba(0,0,0,.08);
   --radius:18px;
 }
-.main > div { padding-top: 0 !important; }
-h1, h2, h3 { letter-spacing:.2px }
+h1,h2,h3 { letter-spacing:.2px }
 .card{
   background:var(--card);
   border-radius:var(--radius);
@@ -79,7 +210,7 @@ h1, h2, h3 { letter-spacing:.2px }
   height:100%;
 }
 .kicker{ color:var(--muted); font-weight:600; font-size:.9rem; margin-bottom:6px }
-.title{ font-weight:800; font-size:1.2rem; margin:0 0 6px }
+.title-sm{ font-weight:800; font-size:1.15rem; margin:0 0 6px }
 .desc{ color:var(--muted); font-size:.95rem; margin:0 0 16px; line-height:1.45 }
 a.linkbtn{
   display:inline-block; text-decoration:none; font-weight:700;
@@ -91,22 +222,44 @@ a.linkbtn:hover{ transform: translateY(-1px); }
   display:inline-block; font-size:.78rem; padding:4px 8px; border-radius:999px;
   background:#eef2ff; color:#1e40af; border:1px solid #dbe3ff; margin-left:8px;
 }
-.footer{ color:var(--muted); font-size:.95rem; }
-.footer a{ font-weight:700; color:#1e40af; text-decoration:none; }
-.footer a:hover{ text-decoration:underline; }
-hr{ border:none; border-top:1px solid #e5e7eb; margin:28px 0; }
+hr{ border:none; border-top:1px solid #e5e7eb; margin:24px 0; }
+
+/* (opcional) Ajuste de margem do bloco que contém o banner */
+// .block-container > div:has(.hero) { margin-top: 4px !important; } /* habilite se seu navegador suportar :has() */
 </style>
 """, unsafe_allow_html=True)
 
-# --- Cabeçalho ---
-st.markdown("### 🗂️ Portal de Cadastros – Logística")
-st.markdown(
-    "Selecione abaixo a ferramenta desejada. Os formulários abrem em uma nova aba."
-)
+# ===================================
+# Banner (logo + título + subtítulo)
+# ===================================
+if logo_b64:
+    st.markdown(f"""
+    <div class="hero">
+      <div class="logo-wrap">
+        <img class="logo" src="data:image/png;base64,{logo_b64}" alt="Logo">
+      </div>
+      <div>
+        <h1 class="title">🗂️ Portal de Cadastros – Logística</h1>
+        <div class="subtitle">Selecione abaixo a ferramenta desejada. Os formulários abrem em uma nova aba.</div>
+      </div>
+    </div>
+    """, unsafe_allow_html=True)
+else:
+    st.markdown("""
+    <div class="hero">
+      <div class="logo-wrap"></div>
+      <div>
+        <h1 class="title">🗂️ Portal de Cadastros – Logística</h1>
+        <div class="subtitle">Selecione abaixo a ferramenta desejada. Os formulários abrem em uma nova aba.</div>
+      </div>
+    </div>
+    """, unsafe_allow_html=True)
 
 st.markdown("---")
 
-# --- Cards principais ---
+# ===================================
+# Cards principais
+# ===================================
 col1, col2 = st.columns(2, gap="large")
 
 with col1:
@@ -114,7 +267,7 @@ with col1:
         f"""
         <div class="card">
           <div class="kicker">Formulário</div>
-          <p class="title">Cadastro de Usuário WMS</p>
+          <p class="title-sm">Cadastro de Usuário WMS</p>
           <p class="desc">
             Crie o usuário no padrão do WMS (turno, setor e regra de TC).
             A planilha e notificações são atualizadas automaticamente pelo fluxo do n8n.
@@ -133,7 +286,7 @@ with col2:
         f"""
         <div class="card">
           <div class="kicker">Formulário</div>
-          <p class="title">Cadastro de Localização</p>
+          <p class="title-sm">Cadastro de Localização</p>
           <p class="desc">
             Solicite criação de endereços (PA/MP), com validação e preenchimento
             automático de colunas e prateleiras. Integra direto com a planilha.
@@ -149,7 +302,9 @@ with col2:
 
 st.markdown("---")
 
-# --- Seção de contato ---
+# ===================================
+# Seção de contato
+# ===================================
 st.markdown("#### 📬 Fale com o time")
 st.markdown(
     f"""
@@ -162,3 +317,9 @@ st.markdown(
 """,
     unsafe_allow_html=True
 )
+
+# =========================
+# Dicas rápidas de ajuste:
+# - Quer que a logo preencha mesmo cortando bordas? Troque .logo {{ object-fit: contain; }} por 'cover'.
+# - Quer banner mais alto? Aumente .hero {{ min-height }} e .logo-wrap {{ height }}.
+# =========================
