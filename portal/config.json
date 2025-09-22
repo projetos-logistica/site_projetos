@@ -1,0 +1,7 @@
+{
+  "urls": {
+    "wms": "https://projetos-logistica.app.n8n.cloud/webhook/cadastro-usuarios",
+    "local": "https://projetos-logistica.app.n8n.cloud/webhook/localizacao"
+  },
+  "contact_email": "projetos.logistica@somagrupo.com.br"
+}
