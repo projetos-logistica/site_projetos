@@ -263,6 +263,7 @@ st.markdown("---")
 col1, col2 = st.columns(2, gap="large")
 
 with col1:
+    # Card: Cadastro de Usuário WMS
     st.markdown(
         f"""
         <div class="card">
@@ -281,7 +282,28 @@ with col1:
         unsafe_allow_html=True
     )
 
+    # NOVO CARD: Paineis BI - Links Públicos
+    st.markdown(
+        """
+        <div class="card">
+          <div class="kicker">Formulário</div>
+          <p class="title-sm">Paineis BI - Links Públicos</p>
+          <p class="desc">
+            Acesse a planilha com os links de painéis BI públicos (Power BI, Tableau, etc.).
+            Os acessos estão consolidados e versionados pela equipe.
+          </p>
+          <a class="linkbtn" href="https://somagrupo.sharepoint.com/:x:/s/Projetos-LogLabs/EVGO7wEaP7lPigdo0dcl6vsBOMVmXMeCBUNdfH6xljI9uw?e=ZDUY4s" 
+             target="_blank" rel="noopener">
+            Abrir formulário
+          </a>
+          <span class="badge">on-line</span>
+        </div>
+        """,
+        unsafe_allow_html=True
+    )
+
 with col2:
+    # Card: Cadastro de Localização
     st.markdown(
         f"""
         <div class="card">
@@ -300,23 +322,6 @@ with col2:
         unsafe_allow_html=True
     )
 
-st.markdown("---")
-
-# ===================================
-# Seção de contato
-# ===================================
-st.markdown("#### 📬 Fale com o time")
-st.markdown(
-    f"""
-<div class="card">
-  <p class="desc" style="margin:0">
-    Dúvidas, erros ou melhorias? Fale com a equipe de Projetos de Logística.<br/>
-    E-mail: <a href="mailto:{CONTATO_EMAIL}">{CONTATO_EMAIL}</a>
-  </p>
-</div>
-""",
-    unsafe_allow_html=True
-)
 
 # =========================
 # Dicas rápidas de ajuste:
