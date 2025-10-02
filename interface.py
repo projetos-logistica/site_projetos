@@ -322,7 +322,8 @@ with col2:
         unsafe_allow_html=True
     )
 
-    #st.markdown("---")
+# ⚠️ Aqui havia um st.markdown("---") → REMOVIDO para tirar a linha azul
+
 
 # ===================================
 # Seção de contato
