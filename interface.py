@@ -239,7 +239,7 @@ if logo_b64:
         <img class="logo" src="data:image/png;base64,{logo_b64}" alt="Logo">
       </div>
       <div>
-        <h1 class="title">🗂️ Portal de Cadastros – Logística</h1>
+        <h1 class="title">🗂️ Portal Projetos Logística</h1>
         <div class="subtitle">Selecione abaixo a ferramenta desejada. Os formulários abrem em uma nova aba.</div>
       </div>
     </div>
@@ -249,7 +249,7 @@ else:
     <div class="hero">
       <div class="logo-wrap"></div>
       <div>
-        <h1 class="title">🗂️ Portal de Cadastros – Logística</h1>
+        <h1 class="title">🗂️ Portal Projetos Logística</h1>
         <div class="subtitle">Selecione abaixo a ferramenta desejada. Os formulários abrem em uma nova aba.</div>
       </div>
     </div>
@@ -270,7 +270,7 @@ with col1:
           <p class="title-sm">Cadastro de Usuário WMS</p>
           <p class="desc">
             Crie o usuário no padrão do WMS (turno, setor e regra de TC).
-            A planilha e notificações são atualizadas automaticamente pelo fluxo do n8n.
+            A planilha e notificações são atualizadas automaticamente pelo fluxo do N8N.
           </p>
           <a class="linkbtn" href="{URL_WMS}" target="_blank" rel="noopener">
             Abrir formulário WMS
