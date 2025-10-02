@@ -135,7 +135,7 @@ logo_b64 = pil_to_base64(logo_img) if logo_img else None
 # Config do app (definir page_icon logo)
 # ===================================
 st.set_page_config(
-    page_title="Portal Logística – Cadastros",
+    page_title="Portal Projetos Logística",
     page_icon=logo_img if logo_img else None,
     layout="wide",
 )
