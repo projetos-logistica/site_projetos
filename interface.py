@@ -322,6 +322,33 @@ with col2:
         unsafe_allow_html=True
     )
 
+    st.markdown("---")
+
+# ===================================
+# Seção de contato
+# ===================================
+st.markdown("#### 📬 Fale com o time")
+st.markdown(
+    f"""
+<div class="card">
+  <p class="desc" style="margin:0">
+    Dúvidas, erros ou melhorias? Fale com a equipe de Projetos de Logística.<br/>
+    E-mail: <a href="mailto:{CONTATO_EMAIL}">{CONTATO_EMAIL}</a>
+  </p>
+</div>
+""",
+    unsafe_allow_html=True
+)
+
+# =========================
+# Dicas rápidas de ajuste:
+# - Quer que a logo preencha mesmo cortando bordas? 
+#   Troque .logo {{ object-fit: contain; }} por 'cover'.
+# - Quer banner mais alto? 
+#   Aumente .hero {{ min-height }} e .logo-wrap {{ height }}.
+# =========================
+
+
 
 # =========================
 # Dicas rápidas de ajuste:
