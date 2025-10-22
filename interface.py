@@ -14,6 +14,8 @@ from pathlib import Path
 DEFAULT_URL_WMS   = "https://projetos-logistica.app.n8n.cloud/webhook/cadastro-usuarios"
 DEFAULT_URL_LOCAL = "https://projetos-logistica.app.n8n.cloud/webhook/localizacao"
 DEFAULT_CONTATO   = "projetos.logistica@somagrupo.com.br"
+# Novo: default do novo link
+DEFAULT_URL_NOVO  = "https://cadastroteste.streamlit.app/"
 
 APP_DIR = Path(__file__).parent
 LOCAL_LOGO_PATH = APP_DIR / "assets" / "logo.png"  # fallback local
@@ -96,6 +98,7 @@ def pil_to_base64(img: Image.Image) -> str:
 URL_WMS = DEFAULT_URL_WMS
 URL_LOCAL = DEFAULT_URL_LOCAL
 CONTATO_EMAIL = DEFAULT_CONTATO
+URL_NOVO = DEFAULT_URL_NOVO  # novo link
 
 config_text = gh_get_text("portal/config.json")
 if config_text:
@@ -104,6 +107,7 @@ if config_text:
         urls = cfg_json.get("urls", {})
         URL_WMS   = urls.get("wms", DEFAULT_URL_WMS)
         URL_LOCAL = urls.get("local", DEFAULT_URL_LOCAL)
+        URL_NOVO  = urls.get("novo", DEFAULT_URL_NOVO)  # lê do JSON se existir
         CONTATO_EMAIL = cfg_json.get("contact_email", DEFAULT_CONTATO)
     except Exception:
         # mantém defaults em caso de erro de parsing
@@ -282,7 +286,7 @@ with col1:
         unsafe_allow_html=True
     )
 
-    # NOVO CARD: Paineis BI - Links Públicos
+    # Card: Paineis BI - Links Públicos
     st.markdown(
         """
         <div class="card">
@@ -322,8 +326,23 @@ with col2:
         unsafe_allow_html=True
     )
 
-# ⚠️ Aqui havia um st.markdown("---") → REMOVIDO para tirar a linha azul
-
+    # NOVO CARD: Cadastro HC (usa URL_NOVO, que pode vir do config.json)
+    st.markdown(
+        f"""
+        <div class="card">
+          <div class="kicker">Cadastro</div>
+          <p class="title-sm">Cadastro HC</p>
+          <p class="desc">
+            Acesse o ambiente para cadastro de colaboradores.
+          </p>
+          <a class="linkbtn" href="{URL_NOVO}" target="_blank" rel="noopener">
+            Abrir Cadastro HC
+          </a>
+          <span class="badge">on-line</span>
+        </div>
+        """,
+        unsafe_allow_html=True
+    )
 
 # ===================================
 # Seção de contato
@@ -340,16 +359,6 @@ st.markdown(
 """,
     unsafe_allow_html=True
 )
-
-# =========================
-# Dicas rápidas de ajuste:
-# - Quer que a logo preencha mesmo cortando bordas? 
-#   Troque .logo {{ object-fit: contain; }} por 'cover'.
-# - Quer banner mais alto? 
-#   Aumente .hero {{ min-height }} e .logo-wrap {{ height }}.
-# =========================
-
-
 
 # =========================
 # Dicas rápidas de ajuste:
