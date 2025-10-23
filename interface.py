@@ -18,8 +18,11 @@ DEFAULT_CONTATO    = "projetos.logistica@somagrupo.com.br"
 # (já existia) app "Cadastro HC"
 DEFAULT_URL_NOVO   = "https://cadastroteste.streamlit.app/"
 
-# NOVO: link da nova ferramenta que você pediu para incluir
+# Link já incluído no portal (Formulário de Visitas)
 DEFAULT_URL_EXTRA  = "https://projetos-logistica.app.n8n.cloud/form/600021df-08ca-4c80-a21d-aba8de936842"
+
+# NOVO: link do novo site (card ao lado do último)
+DEFAULT_URL_NOVO2  = "https://projetos-logistica.app.n8n.cloud/form/1ce32498-70fe-4baf-9499-6ce127c10dac"
 
 APP_DIR = Path(__file__).parent
 LOCAL_LOGO_PATH = APP_DIR / "assets" / "logo.png"  # fallback local
@@ -92,7 +95,8 @@ URL_WMS = DEFAULT_URL_WMS
 URL_LOCAL = DEFAULT_URL_LOCAL
 CONTATO_EMAIL = DEFAULT_CONTATO
 URL_NOVO = DEFAULT_URL_NOVO
-URL_EXTRA = DEFAULT_URL_EXTRA   # <- novo
+URL_EXTRA = DEFAULT_URL_EXTRA
+URL_NOVO2 = DEFAULT_URL_NOVO2  # novo
 
 config_text = gh_get_text("portal/config.json")
 if config_text:
@@ -102,8 +106,8 @@ if config_text:
         URL_WMS   = urls.get("wms", DEFAULT_URL_WMS)
         URL_LOCAL = urls.get("local", DEFAULT_URL_LOCAL)
         URL_NOVO  = urls.get("novo", DEFAULT_URL_NOVO)
-        # Você pode colocar no JSON a chave "extra" para trocar o link sem mexer no código
         URL_EXTRA = urls.get("extra", DEFAULT_URL_EXTRA)
+        URL_NOVO2 = urls.get("novo2", DEFAULT_URL_NOVO2)  # permite override via JSON
         CONTATO_EMAIL = cfg_json.get("contact_email", DEFAULT_CONTATO)
     except Exception:
         pass
@@ -270,7 +274,7 @@ with col1:
         unsafe_allow_html=True
     )
 
-    # Card: Formulário de Visitas (AGORA DENTRO DO col1)
+    # Card: Formulário de Visitas
     st.markdown(
         f"""
         <div class="card compact">
@@ -326,6 +330,23 @@ with col2:
         unsafe_allow_html=True
     )
 
+    # Card: Novo Site (ao lado/abaixo do último card)
+    st.markdown(
+        f"""
+        <div class="card">
+          <div class="kicker">Formulário</div>
+          <p class="title-sm">Formulário de Impressão / Plastificação</p>
+          <p class="desc">
+            Acesse o formulário de solicitação de impressão / Plastificação.
+          </p>
+          <a class="linkbtn" href="{URL_NOVO2}" target="_blank" rel="noopener">
+            Abrir Formulário de solicitação
+          </a>
+          <span class="badge">on-line</span>
+        </div>
+        """,
+        unsafe_allow_html=True
+    )
 
 # ===================================
 # Espaçador para jogar o contato mais pra baixo
