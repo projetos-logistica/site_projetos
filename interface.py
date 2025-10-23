@@ -11,11 +11,15 @@ from pathlib import Path
 # =========================
 # Configurações & Defaults
 # =========================
-DEFAULT_URL_WMS   = "https://projetos-logistica.app.n8n.cloud/webhook/cadastro-usuarios"
-DEFAULT_URL_LOCAL = "https://projetos-logistica.app.n8n.cloud/webhook/localizacao"
-DEFAULT_CONTATO   = "projetos.logistica@somagrupo.com.br"
-# Novo: default do novo link
-DEFAULT_URL_NOVO  = "https://cadastroteste.streamlit.app/"
+DEFAULT_URL_WMS    = "https://projetos-logistica.app.n8n.cloud/webhook/cadastro-usuarios"
+DEFAULT_URL_LOCAL  = "https://projetos-logistica.app.n8n.cloud/webhook/localizacao"
+DEFAULT_CONTATO    = "projetos.logistica@somagrupo.com.br"
+
+# (já existia) app "Cadastro HC"
+DEFAULT_URL_NOVO   = "https://cadastroteste.streamlit.app/"
+
+# NOVO: link da nova ferramenta que você pediu para incluir
+DEFAULT_URL_EXTRA  = "https://projetos-logistica.app.n8n.cloud/form/600021df-08ca-4c80-a21d-aba8de936842"
 
 APP_DIR = Path(__file__).parent
 LOCAL_LOGO_PATH = APP_DIR / "assets" / "logo.png"  # fallback local
@@ -24,7 +28,6 @@ LOCAL_LOGO_PATH = APP_DIR / "assets" / "logo.png"  # fallback local
 # Helpers de integração com GitHub
 # ===================================
 def _get_github_cfg() -> dict:
-    """Lê a seção [github] do secrets.toml de forma segura."""
     try:
         cfg = st.secrets.get("github", {})
         if not isinstance(cfg, dict):
@@ -34,16 +37,12 @@ def _get_github_cfg() -> dict:
         return {}
 
 def _build_raw_url(owner: str, repo: str, branch: str, path: str, base_raw_host: str | None):
-    """Monta URL de conteúdo bruto para GitHub.com ou Enterprise."""
     path = path.lstrip("/")
     if base_raw_host:
-        # Ex.: https://raw.github.seudominio.com/org/repo/branch/path
         return f"https://{base_raw_host}/{owner}/{repo}/{branch}/{path}"
-    # GitHub.com
     return f"https://raw.githubusercontent.com/{owner}/{repo}/{branch}/{path}"
 
 def gh_get_text(path: str) -> str | None:
-    """Busca arquivo de texto (ex.: JSON) no repositório corporativo."""
     try:
         cfg = _get_github_cfg()
         owner = cfg.get("org")
@@ -51,10 +50,8 @@ def gh_get_text(path: str) -> str | None:
         branch = cfg.get("branch", "main")
         base_raw_host = cfg.get("base_raw_host")
         token = cfg.get("token")
-
         if not owner or not repo:
             return None
-
         url = _build_raw_url(owner, repo, branch, path, base_raw_host)
         headers = {"Authorization": f"token {token}"} if token else {}
         r = requests.get(url, headers=headers, timeout=20)
@@ -65,7 +62,6 @@ def gh_get_text(path: str) -> str | None:
         return None
 
 def gh_get_bytes(path: str) -> bytes | None:
-    """Busca arquivo binário (ex.: PNG) no repositório corporativo."""
     try:
         cfg = _get_github_cfg()
         owner = cfg.get("org")
@@ -73,10 +69,8 @@ def gh_get_bytes(path: str) -> bytes | None:
         branch = cfg.get("branch", "main")
         base_raw_host = cfg.get("base_raw_host")
         token = cfg.get("token")
-
         if not owner or not repo:
             return None
-
         url = _build_raw_url(owner, repo, branch, path, base_raw_host)
         headers = {"Authorization": f"token {token}"} if token else {}
         r = requests.get(url, headers=headers, timeout=20)
@@ -87,7 +81,6 @@ def gh_get_bytes(path: str) -> bytes | None:
         return None
 
 def pil_to_base64(img: Image.Image) -> str:
-    """Converte PIL.Image em base64 (PNG)."""
     buf = io.BytesIO()
     img.save(buf, format="PNG")
     return base64.b64encode(buf.getvalue()).decode("utf-8")
@@ -98,7 +91,8 @@ def pil_to_base64(img: Image.Image) -> str:
 URL_WMS = DEFAULT_URL_WMS
 URL_LOCAL = DEFAULT_URL_LOCAL
 CONTATO_EMAIL = DEFAULT_CONTATO
-URL_NOVO = DEFAULT_URL_NOVO  # novo link
+URL_NOVO = DEFAULT_URL_NOVO
+URL_EXTRA = DEFAULT_URL_EXTRA   # <- novo
 
 config_text = gh_get_text("portal/config.json")
 if config_text:
@@ -107,18 +101,17 @@ if config_text:
         urls = cfg_json.get("urls", {})
         URL_WMS   = urls.get("wms", DEFAULT_URL_WMS)
         URL_LOCAL = urls.get("local", DEFAULT_URL_LOCAL)
-        URL_NOVO  = urls.get("novo", DEFAULT_URL_NOVO)  # lê do JSON se existir
+        URL_NOVO  = urls.get("novo", DEFAULT_URL_NOVO)
+        # Você pode colocar no JSON a chave "extra" para trocar o link sem mexer no código
+        URL_EXTRA = urls.get("extra", DEFAULT_URL_EXTRA)
         CONTATO_EMAIL = cfg_json.get("contact_email", DEFAULT_CONTATO)
     except Exception:
-        # mantém defaults em caso de erro de parsing
         pass
 
 # ===================================
-# Carrega logo (repo corporativo -> local)
+# Carrega logo
 # ===================================
 logo_img = None
-
-# 1) tenta remoto
 remote_bytes = gh_get_bytes("assets/logo.png")
 if remote_bytes:
     try:
@@ -126,7 +119,6 @@ if remote_bytes:
     except Exception:
         logo_img = None
 
-# 2) fallback local
 if logo_img is None and LOCAL_LOGO_PATH.exists():
     try:
         logo_img = Image.open(str(LOCAL_LOGO_PATH))
@@ -136,7 +128,7 @@ if logo_img is None and LOCAL_LOGO_PATH.exists():
 logo_b64 = pil_to_base64(logo_img) if logo_img else None
 
 # ===================================
-# Config do app (definir page_icon logo)
+# Config do app
 # ===================================
 st.set_page_config(
     page_title="Portal Projetos Logística",
@@ -145,21 +137,18 @@ st.set_page_config(
 )
 
 # ===================================
-# Estilos (menos espaço, banner com logo, cards)
+# Estilos
 # ===================================
 st.markdown("""
 <style>
-/* ===== Reset / Base ===== */
 html, body, .main { background: #f8fafc; }
-.main .block-container { padding-top: 12px !important; } /* reduz espaçamento superior */
+.main .block-container { padding-top: 12px !important; }
 
-/* Esconde elementos nativos */
 #MainMenu, header, footer,
 [data-testid="stToolbar"],
 .stApp [data-testid="stHeader"],
 .stApp [data-testid="baseLinkButton-footer"] { display: none !important; }
 
-/* ===== Banner/topbar ===== */
 .hero {
   width: 100%;
   min-height: 120px;
@@ -173,45 +162,23 @@ html, body, .main { background: #f8fafc; }
   gap: 18px;
   border: 1px solid rgba(255,255,255,.06);
 }
-.hero .logo-wrap{
-  height: 72px;      /* ajuste fino da altura da logo */
-  max-width: 360px;  /* largura máxima sugerida */
-  display: flex; align-items: center;
-}
-.hero .logo{
-  width: 100%;
-  height: 100%;
-  object-fit: contain; /* use 'cover' se quiser preencher mesmo cortando */
-  filter: drop-shadow(0 6px 14px rgba(0,0,0,.25));
-}
-.hero .title{
-  color: #fff;
-  font-weight: 800;
-  line-height: 1.15;
-  margin: 0;
-  font-size: clamp(22px, 3.2vw, 34px);
-  letter-spacing: .2px;
-}
-.hero .subtitle{
-  color: rgba(255,255,255,.78);
-  margin-top: 4px;
-  font-size: clamp(13px, 1.6vw, 15.5px);
-}
+.hero .logo-wrap{ height: 72px; max-width: 360px; display: flex; align-items: center; }
+.hero .logo{ width: 100%; height: 100%; object-fit: contain; filter: drop-shadow(0 6px 14px rgba(0,0,0,.25)); }
+.hero .title{ color: #fff; font-weight: 800; line-height: 1.15; margin: 0; font-size: clamp(22px, 3.2vw, 34px); letter-spacing: .2px; }
+.hero .subtitle{ color: rgba(255,255,255,.78); margin-top: 4px; font-size: clamp(13px, 1.6vw, 15.5px); }
 
-/* ===== Cards ===== */
 :root{
   --bg:#f8fafc; --card:#ffffff; --text:#0f172a; --muted:#64748b;
   --accent:#111827; --ring:#2563eb; --shadow:0 10px 26px rgba(0,0,0,.08);
   --radius:18px;
 }
-h1,h2,h3 { letter-spacing:.2px }
 .card{
   background:var(--card);
   border-radius:var(--radius);
   box-shadow:var(--shadow);
   padding:22px 22px 18px 22px;
   border:1px solid #e5e7eb;
-  height:100%;
+  height:auto;
 }
 .kicker{ color:var(--muted); font-weight:600; font-size:.9rem; margin-bottom:6px }
 .title-sm{ font-weight:800; font-size:1.15rem; margin:0 0 6px }
@@ -227,14 +194,11 @@ a.linkbtn:hover{ transform: translateY(-1px); }
   background:#eef2ff; color:#1e40af; border:1px solid #dbe3ff; margin-left:8px;
 }
 hr{ border:none; border-top:1px solid #e5e7eb; margin:24px 0; }
-
-/* (opcional) Ajuste de margem do bloco que contém o banner */
-// .block-container > div:has(.hero) { margin-top: 4px !important; } /* habilite se seu navegador suportar :has() */
 </style>
 """, unsafe_allow_html=True)
 
 # ===================================
-# Banner (logo + título + subtítulo)
+# Banner
 # ===================================
 if logo_b64:
     st.markdown(f"""
@@ -306,6 +270,24 @@ with col1:
         unsafe_allow_html=True
     )
 
+    # Card: Formulário de Visitas (AGORA DENTRO DO col1)
+    st.markdown(
+        f"""
+        <div class="card compact">
+          <div class="kicker">Formulário</div>
+          <p class="title-sm">Formulário de Visitas</p>
+          <p class="desc">
+            Formulário de Visitas para agendamento.
+          </p>
+          <a class="linkbtn" href="{URL_EXTRA}" target="_blank" rel="noopener">
+            Abrir Formulário de Visitas
+          </a>
+          <span class="badge">on-line</span>
+        </div>
+        """,
+        unsafe_allow_html=True
+    )
+
 with col2:
     # Card: Cadastro de Localização
     st.markdown(
@@ -326,7 +308,7 @@ with col2:
         unsafe_allow_html=True
     )
 
-    # NOVO CARD: Cadastro HC (usa URL_NOVO, que pode vir do config.json)
+    # Card: Cadastro HC
     st.markdown(
         f"""
         <div class="card">
@@ -344,6 +326,12 @@ with col2:
         unsafe_allow_html=True
     )
 
+
+# ===================================
+# Espaçador para jogar o contato mais pra baixo
+# ===================================
+st.markdown("<div style='height: 32px'></div>", unsafe_allow_html=True)
+
 # ===================================
 # Seção de contato
 # ===================================
@@ -359,9 +347,3 @@ st.markdown(
 """,
     unsafe_allow_html=True
 )
-
-# =========================
-# Dicas rápidas de ajuste:
-# - Quer que a logo preencha mesmo cortando bordas? Troque .logo {{ object-fit: contain; }} por 'cover'.
-# - Quer banner mais alto? Aumente .hero {{ min-height }} e .logo-wrap {{ height }}.
-# =========================
