@@ -142,6 +142,7 @@ st.set_page_config(
     page_title="Portal Projetos Logística",
     page_icon=logo_img if logo_img else None,
     layout="wide",
+    initial_sidebar_state="expanded",  # garante que a sidebar inicie aberta
 )
 
 
@@ -153,10 +154,16 @@ st.markdown("""
 html, body, .main { background: #f8fafc; }
 .main .block-container { padding-top: 12px !important; }
 
-#MainMenu, header, footer,
-[data-testid="stToolbar"],
-.stApp [data-testid="stHeader"],
+/* NÃO ESCONDER o header/toolbar para manter o botão da sidebar acessível */
+#MainMenu, footer,
 .stApp [data-testid="baseLinkButton-footer"] { display: none !important; }
+
+/* Garante que o botão de colapso da sidebar fique sempre visível */
+[data-testid="stSidebarCollapseButton"]{
+  display: inline-flex !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+}
 
 /* HERO */
 .hero {
@@ -206,15 +213,57 @@ a.linkbtn:hover{ transform: translateY(-1px); }
 }
 hr{ border:none; border-top:1px solid #e5e7eb; margin:24px 0; }
 
-/* Sidebar com "áreas" (estilo pill/menu) */
+/* Sidebar */
 section[data-testid="stSidebar"] > div { padding-top: 10px; }
 .sidebar-title{
-  font-weight:800; font-size:1rem; color:#0f172a; margin-bottom:8px;
-  letter-spacing:.2px;
+  font-weight:800; font-size:1rem; color:#0f172a; margin-bottom:8px; letter-spacing:.2px;
 }
 .sidebar-help{ color:#64748b; font-size:.9rem; margin-bottom:14px; }
 div[role="radiogroup"] label p { font-weight:600; }
+
+/* FAB (botão flutuante "Áreas") */
+.fab-areas{
+  position: fixed; left: 14px; bottom: 18px; z-index: 9999;
+  display: none; align-items: center; justify-content: center;
+  padding: 10px 14px; border-radius: 999px;
+  background: #111827; color: #fff; font-weight: 700; font-size: 14px;
+  box-shadow: 0 8px 18px rgba(0,0,0,.2); cursor: pointer;
+  border: 1px solid rgba(255,255,255,.08);
+}
+.fab-areas:hover{ transform: translateY(-1px); }
+@media (max-width: 900px){ .fab-areas{ left: 12px; bottom: 12px; } }
 </style>
+
+<!-- Botão flutuante para reabrir a sidebar quando escondida -->
+<div id="fab-areas" class="fab-areas">Áreas</div>
+
+<script>
+(function(){
+  const doc = window.document;
+  const btn = doc.getElementById('fab-areas');
+
+  function getSidebar(){ return doc.querySelector('section[data-testid="stSidebar"]'); }
+  function getToggle(){ return doc.querySelector('[data-testid="stSidebarCollapseButton"]'); }
+  function isSidebarVisible(){
+    const sb = getSidebar();
+    if(!sb) return false;
+    const style = getComputedStyle(sb);
+    return sb.offsetWidth > 0 && style.visibility !== 'hidden' && style.display !== 'none';
+  }
+  function updateFab(){ btn.style.display = isSidebarVisible() ? 'none' : 'flex'; }
+
+  btn.addEventListener('click', function(){
+    const toggle = getToggle();
+    if(toggle){ toggle.click(); }
+    setTimeout(updateFab, 250);
+  });
+
+  const obs = new MutationObserver(() => { updateFab(); });
+  obs.observe(doc.body, { attributes:true, childList:true, subtree:true });
+
+  setTimeout(updateFab, 500);
+})();
+</script>
 """, unsafe_allow_html=True)
 
 # ===================================
@@ -261,7 +310,7 @@ with st.sidebar:
 
 
 # ===================================
-# Funções de UI
+# Função para renderizar um card
 # ===================================
 def card(kicker: str, titulo: str, descricao: str, url: str, botao: str):
     st.markdown(
