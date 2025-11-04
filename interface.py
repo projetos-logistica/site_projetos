@@ -27,6 +27,7 @@ DEFAULT_URL_NOVO2  = "https://projetos-logistica.app.n8n.cloud/form/1ce32498-70f
 APP_DIR = Path(__file__).parent
 LOCAL_LOGO_PATH = APP_DIR / "assets" / "logo.png"  # fallback local
 
+
 # ===================================
 # Helpers de integração com GitHub
 # ===================================
@@ -88,6 +89,7 @@ def pil_to_base64(img: Image.Image) -> str:
     img.save(buf, format="PNG")
     return base64.b64encode(buf.getvalue()).decode("utf-8")
 
+
 # ===================================
 # Carrega config do repositório
 # ===================================
@@ -112,6 +114,7 @@ if config_text:
     except Exception:
         pass
 
+
 # ===================================
 # Carrega logo
 # ===================================
@@ -131,6 +134,7 @@ if logo_img is None and LOCAL_LOGO_PATH.exists():
 
 logo_b64 = pil_to_base64(logo_img) if logo_img else None
 
+
 # ===================================
 # Config do app
 # ===================================
@@ -139,6 +143,7 @@ st.set_page_config(
     page_icon=logo_img if logo_img else None,
     layout="wide",
 )
+
 
 # ===================================
 # Estilos
@@ -153,6 +158,7 @@ html, body, .main { background: #f8fafc; }
 .stApp [data-testid="stHeader"],
 .stApp [data-testid="baseLinkButton-footer"] { display: none !important; }
 
+/* HERO */
 .hero {
   width: 100%;
   min-height: 120px;
@@ -171,6 +177,7 @@ html, body, .main { background: #f8fafc; }
 .hero .title{ color: #fff; font-weight: 800; line-height: 1.15; margin: 0; font-size: clamp(22px, 3.2vw, 34px); letter-spacing: .2px; }
 .hero .subtitle{ color: rgba(255,255,255,.78); margin-top: 4px; font-size: clamp(13px, 1.6vw, 15.5px); }
 
+/* TOKENS & CARD */
 :root{
   --bg:#f8fafc; --card:#ffffff; --text:#0f172a; --muted:#64748b;
   --accent:#111827; --ring:#2563eb; --shadow:0 10px 26px rgba(0,0,0,.08);
@@ -198,6 +205,15 @@ a.linkbtn:hover{ transform: translateY(-1px); }
   background:#eef2ff; color:#1e40af; border:1px solid #dbe3ff; margin-left:8px;
 }
 hr{ border:none; border-top:1px solid #e5e7eb; margin:24px 0; }
+
+/* Sidebar com "áreas" (estilo pill/menu) */
+section[data-testid="stSidebar"] > div { padding-top: 10px; }
+.sidebar-title{
+  font-weight:800; font-size:1rem; color:#0f172a; margin-bottom:8px;
+  letter-spacing:.2px;
+}
+.sidebar-help{ color:#64748b; font-size:.9rem; margin-bottom:14px; }
+div[role="radiogroup"] label p { font-weight:600; }
 </style>
 """, unsafe_allow_html=True)
 
@@ -229,133 +245,111 @@ else:
 
 st.markdown("---")
 
-# ===================================
-# Cards principais
-# ===================================
-col1, col2 = st.columns(2, gap="large")
-
-with col1:
-    # Card: Cadastro de Usuário WMS
-    st.markdown(
-        f"""
-        <div class="card">
-          <div class="kicker">Formulário</div>
-          <p class="title-sm">Cadastro de Usuário WMS</p>
-          <p class="desc">
-            Crie o usuário no padrão do WMS (turno, setor e regra de TC).
-            A planilha e notificações são atualizadas automaticamente pelo fluxo do N8N.
-          </p>
-          <a class="linkbtn" href="{URL_WMS}" target="_blank" rel="noopener">
-            Abrir formulário WMS
-          </a>
-          <span class="badge">on-line</span>
-        </div>
-        """,
-        unsafe_allow_html=True
-    )
-
-    # Card: Paineis BI - Links Públicos
-    st.markdown(
-        """
-        <div class="card">
-          <div class="kicker">Formulário</div>
-          <p class="title-sm">Paineis BI - Links Públicos</p>
-          <p class="desc">
-            Acesse a planilha com os links de painéis BI públicos (Power BI, Tableau, etc.).
-            Os acessos estão consolidados e versionados pela equipe.
-          </p>
-          <a class="linkbtn" href="https://somagrupo.sharepoint.com/:x:/s/Projetos-LogLabs/EVGO7wEaP7lPigdo0dcl6vsBOMVmXMeCBUNdfH6xljI9uw?e=ZDUY4s" 
-             target="_blank" rel="noopener">
-            Abrir formulário
-          </a>
-          <span class="badge">on-line</span>
-        </div>
-        """,
-        unsafe_allow_html=True
-    )
-
-    # Card: Formulário de Visitas
-    st.markdown(
-        f"""
-        <div class="card compact">
-          <div class="kicker">Formulário</div>
-          <p class="title-sm">Formulário de Visitas</p>
-          <p class="desc">
-            Formulário de Visitas para agendamento.
-          </p>
-          <a class="linkbtn" href="{URL_EXTRA}" target="_blank" rel="noopener">
-            Abrir Formulário de Visitas
-          </a>
-          <span class="badge">on-line</span>
-        </div>
-        """,
-        unsafe_allow_html=True
-    )
-
-with col2:
-    # Card: Cadastro de Localização
-    st.markdown(
-        f"""
-        <div class="card">
-          <div class="kicker">Formulário</div>
-          <p class="title-sm">Cadastro de Localização</p>
-          <p class="desc">
-            Solicite criação de endereços (PA/MP), com validação e preenchimento
-            automático de colunas e prateleiras. Integra direto com a planilha.
-          </p>
-          <a class="linkbtn" href="{URL_LOCAL}" target="_blank" rel="noopener">
-            Abrir formulário de Localização
-          </a>
-          <span class="badge">on-line</span>
-        </div>
-        """,
-        unsafe_allow_html=True
-    )
-
-    # Card: Cadastro HC
-    st.markdown(
-        f"""
-        <div class="card">
-          <div class="kicker">Cadastro</div>
-          <p class="title-sm">Cadastro HC</p>
-          <p class="desc">
-            Acesse o ambiente para cadastro de colaboradores.
-          </p>
-          <a class="linkbtn" href="{URL_NOVO}" target="_blank" rel="noopener">
-            Abrir Cadastro HC
-          </a>
-          <span class="badge">on-line</span>
-        </div>
-        """,
-        unsafe_allow_html=True
-    )
-
-    # Card: Novo Site (ao lado/abaixo do último card)
-    st.markdown(
-        f"""
-        <div class="card">
-          <div class="kicker">Formulário</div>
-          <p class="title-sm">Formulário de Impressão / Plastificação</p>
-          <p class="desc">
-            Acesse o formulário de solicitação de impressão / Plastificação.
-          </p>
-          <a class="linkbtn" href="{URL_NOVO2}" target="_blank" rel="noopener">
-            Abrir Formulário de solicitação
-          </a>
-          <span class="badge">on-line</span>
-        </div>
-        """,
-        unsafe_allow_html=True
-    )
 
 # ===================================
-# Espaçador para jogar o contato mais pra baixo
+# Sidebar (Áreas)
+# ===================================
+with st.sidebar:
+    st.markdown('<div class="sidebar-title">ÁREAS</div>', unsafe_allow_html=True)
+    setor = st.radio(
+        "Selecione a área",
+        ["Cadastro", "Qualidade"],
+        label_visibility="collapsed",
+        index=0,
+    )
+    st.markdown('<div class="sidebar-help">Escolha um setor para ver apenas os links correspondentes.</div>', unsafe_allow_html=True)
+
+
+# ===================================
+# Funções de UI
+# ===================================
+def card(kicker: str, titulo: str, descricao: str, url: str, botao: str):
+    st.markdown(
+        f"""
+        <div class="card">
+          <div class="kicker">{kicker}</div>
+          <p class="title-sm">{titulo}</p>
+          <p class="desc">{descricao}</p>
+          <a class="linkbtn" href="{url}" target="_blank" rel="noopener">{botao}</a>
+          <span class="badge">on-line</span>
+        </div>
+        """,
+        unsafe_allow_html=True
+    )
+
+
+# ===================================
+# Conteúdo por setor
+# ===================================
+if setor == "Cadastro":
+    st.subheader("Cadastro")
+
+    col1, col2 = st.columns(2, gap="large")
+    with col1:
+        card(
+            "Formulário",
+            "Cadastro de Usuário WMS",
+            "Crie o usuário no padrão do WMS (turno, setor e regra de TC). "
+            "A planilha e notificações são atualizadas automaticamente pelo fluxo do N8N.",
+            URL_WMS,
+            "Abrir formulário WMS",
+        )
+
+        card(
+            "Cadastro",
+            "Cadastro HC",
+            "Acesse o ambiente para cadastro de colaboradores.",
+            URL_NOVO,
+            "Abrir Cadastro HC",
+        )
+
+    with col2:
+        card(
+            "Formulário",
+            "Cadastro de Localização",
+            "Solicite criação de endereços (PA/MP), com validação e preenchimento automático "
+            "de colunas e prateleiras. Integra direto com a planilha.",
+            URL_LOCAL,
+            "Abrir formulário de Localização",
+        )
+
+elif setor == "Qualidade":
+    st.subheader("Qualidade")
+
+    col1, col2 = st.columns(2, gap="large")
+    with col1:
+        card(
+            "Formulário",
+            "Paineis BI - Links Públicos",
+            "Acesse a planilha com os links de painéis BI públicos (Power BI, Tableau, etc.). "
+            "Os acessos estão consolidados e versionados pela equipe.",
+            "https://somagrupo.sharepoint.com/:x:/s/Projetos-LogLabs/EVGO7wEaP7lPigdo0dcl6vsBOMVmXMeCBUNdfH6xljI9uw?e=ZDUY4s",
+            "Abrir formulário",
+        )
+
+        card(
+            "Formulário",
+            "Formulário de Visitas",
+            "Formulário de Visitas para agendamento.",
+            URL_EXTRA,
+            "Abrir Formulário de Visitas",
+        )
+
+    with col2:
+        card(
+            "Formulário",
+            "Formulário de Impressão / Plastificação",
+            "Acesse o formulário de solicitação de impressão / Plastificação.",
+            URL_NOVO2,
+            "Abrir Formulário de solicitação",
+        )
+
+
+# ===================================
+# Espaçador e contato
 # ===================================
 st.markdown("<div style='height: 32px'></div>", unsafe_allow_html=True)
 
-# ===================================
-# Seção de contato
-# ===================================
 st.markdown("#### 📬 Fale com o time")
 st.markdown(
     f"""
