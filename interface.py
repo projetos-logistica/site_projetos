@@ -372,7 +372,7 @@ elif setor == "Qualidade":
             "Paineis BI - Links Públicos",
             "Acesse a planilha com os links de painéis BI públicos (Power BI, Tableau, etc.). "
             "Os acessos estão consolidados e versionados pela equipe.",
-            "https://somagrupo.sharepoint.com/:x:/s/Projetos-LogLabs/EVGO7wEaP7lPigdo0dcl6vsBOMVmXMeCBUNdfH6xljI9uw?e=ZDUY4s",
+            "https://projetos-logistica.github.io/link_publico/",
             "Abrir formulário",
         )
 
