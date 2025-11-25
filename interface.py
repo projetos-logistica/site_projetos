@@ -344,14 +344,6 @@ if setor == "Cadastro":
             "Abrir formulário WMS",
         )
 
-        card(
-            "Cadastro",
-            "Absenteísmo",
-            "Acesse o ambiente para cadastro de colaboradores.",
-            URL_NOVO,
-            "Abrir Absenteísmo",
-        )
-
     with col2:
         card(
             "Formulário",
@@ -365,6 +357,7 @@ if setor == "Cadastro":
 elif setor == "Qualidade":
     st.subheader("Qualidade")
 
+    # === LINHA 1: Painéis BI  |  Impressão / Plastificação ===
     col1, col2 = st.columns(2, gap="large")
     with col1:
         card(
@@ -376,14 +369,6 @@ elif setor == "Qualidade":
             "Abrir formulário",
         )
 
-        card(
-            "Formulário",
-            "Formulário de Visitas",
-            "Formulário de Visitas para agendamento.",
-            URL_EXTRA,
-            "Abrir Formulário de Visitas",
-        )
-
     with col2:
         card(
             "Formulário",
@@ -392,6 +377,27 @@ elif setor == "Qualidade":
             URL_NOVO2,
             "Abrir Formulário de solicitação",
         )
+
+    # === LINHA 2: Formulário de Visitas  |  Absenteísmo ===
+    col3, col4 = st.columns(2, gap="large")
+    with col3:
+        card(
+            "Formulário",
+            "Formulário de Visitas",
+            "Formulário de Visitas para agendamento.",
+            URL_EXTRA,
+            "Abrir Formulário de Visitas",
+        )
+
+    with col4:
+        card(
+            "Cadastro",
+            "Absenteísmo",
+            "Acesse o ambiente para cadastro de colaboradores.",
+            URL_NOVO,
+            "Abrir Absenteísmo",
+        )
+
 
 
 # ===================================
