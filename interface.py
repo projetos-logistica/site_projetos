@@ -346,10 +346,10 @@ if setor == "Cadastro":
 
         card(
             "Cadastro",
-            "Cadastro HC",
+            "Absenteísmo",
             "Acesse o ambiente para cadastro de colaboradores.",
             URL_NOVO,
-            "Abrir Cadastro HC",
+            "Abrir Absenteísmo",
         )
 
     with col2:
