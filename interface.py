@@ -15,13 +15,8 @@ DEFAULT_URL_WMS    = "https://projetos-logistica.app.n8n.cloud/webhook/cadastro-
 DEFAULT_URL_LOCAL  = "https://projetos-logistica.app.n8n.cloud/webhook/localizacao"
 DEFAULT_CONTATO    = "projetos.logistica@somagrupo.com.br"
 
-# (já existia) app "Cadastro HC"
 DEFAULT_URL_NOVO   = "https://cadastroteste.streamlit.app/"
-
-# Link já incluído no portal (Formulário de Visitas)
 DEFAULT_URL_EXTRA  = "https://projetos-logistica.app.n8n.cloud/form/600021df-08ca-4c80-a21d-aba8de936842"
-
-# NOVO: link do novo site (card ao lado do último)
 DEFAULT_URL_NOVO2  = "https://projetos-logistica.app.n8n.cloud/form/1ce32498-70fe-4baf-9499-6ce127c10dac"
 
 APP_DIR = Path(__file__).parent
@@ -29,7 +24,7 @@ LOCAL_LOGO_PATH = APP_DIR / "assets" / "logo.png"  # fallback local
 
 
 # ===================================
-# Helpers de integração com GitHub
+# Helpers GitHub
 # ===================================
 def _get_github_cfg() -> dict:
     try:
@@ -98,7 +93,7 @@ URL_LOCAL = DEFAULT_URL_LOCAL
 CONTATO_EMAIL = DEFAULT_CONTATO
 URL_NOVO = DEFAULT_URL_NOVO
 URL_EXTRA = DEFAULT_URL_EXTRA
-URL_NOVO2 = DEFAULT_URL_NOVO2  # novo
+URL_NOVO2 = DEFAULT_URL_NOVO2
 
 config_text = gh_get_text("portal/config.json")
 if config_text:
@@ -109,7 +104,7 @@ if config_text:
         URL_LOCAL = urls.get("local", DEFAULT_URL_LOCAL)
         URL_NOVO  = urls.get("novo", DEFAULT_URL_NOVO)
         URL_EXTRA = urls.get("extra", DEFAULT_URL_EXTRA)
-        URL_NOVO2 = urls.get("novo2", DEFAULT_URL_NOVO2)  # permite override via JSON
+        URL_NOVO2 = urls.get("novo2", DEFAULT_URL_NOVO2)
         CONTATO_EMAIL = cfg_json.get("contact_email", DEFAULT_CONTATO)
     except Exception:
         pass
@@ -142,7 +137,7 @@ st.set_page_config(
     page_title="Portal Projetos Logística",
     page_icon=logo_img if logo_img else None,
     layout="wide",
-    initial_sidebar_state="expanded",  # garante que a sidebar inicie aberta
+    initial_sidebar_state="expanded"
 )
 
 
@@ -154,11 +149,8 @@ st.markdown("""
 html, body, .main { background: #f8fafc; }
 .main .block-container { padding-top: 12px !important; }
 
-/* NÃO ESCONDER o header/toolbar para manter o botão da sidebar acessível */
-#MainMenu, footer,
-.stApp [data-testid="baseLinkButton-footer"] { display: none !important; }
+#MainMenu, footer, .stApp [data-testid="baseLinkButton-footer"] { display: none !important; }
 
-/* Garante que o botão de colapso da sidebar fique sempre visível */
 [data-testid="stSidebarCollapseButton"]{
   display: inline-flex !important;
   visibility: visible !important;
@@ -184,87 +176,29 @@ html, body, .main { background: #f8fafc; }
 .hero .title{ color: #fff; font-weight: 800; line-height: 1.15; margin: 0; font-size: clamp(22px, 3.2vw, 34px); letter-spacing: .2px; }
 .hero .subtitle{ color: rgba(255,255,255,.78); margin-top: 4px; font-size: clamp(13px, 1.6vw, 15.5px); }
 
-/* TOKENS & CARD */
-:root{
-  --bg:#f8fafc; --card:#ffffff; --text:#0f172a; --muted:#64748b;
-  --accent:#111827; --ring:#2563eb; --shadow:0 10px 26px rgba(0,0,0,.08);
-  --radius:18px;
-}
+/* CARD */
 .card{
-  background:var(--card);
-  border-radius:var(--radius);
-  box-shadow:var(--shadow);
+  background:#ffffff;
+  border-radius:18px;
+  box-shadow:0 10px 26px rgba(0,0,0,.08);
   padding:22px 22px 18px 22px;
   border:1px solid #e5e7eb;
-  height:auto;
 }
-.kicker{ color:var(--muted); font-weight:600; font-size:.9rem; margin-bottom:6px }
+.kicker{ color:#64748b; font-weight:600; }
 .title-sm{ font-weight:800; font-size:1.15rem; margin:0 0 6px }
-.desc{ color:var(--muted); font-size:.95rem; margin:0 0 16px; line-height:1.45 }
+.desc{ color:#64748b; font-size:.95rem; margin:0 0 16px; }
 a.linkbtn{
   display:inline-block; text-decoration:none; font-weight:700;
-  background:var(--accent); color:white; padding:10px 14px;
-  border-radius:12px; border:1px solid #0b1220; transition:transform .05s ease;
+  background:#111827; color:white; padding:10px 14px;
+  border-radius:12px;
 }
-a.linkbtn:hover{ transform: translateY(-1px); }
 .badge{
-  display:inline-block; font-size:.78rem; padding:4px 8px; border-radius:999px;
-  background:#eef2ff; color:#1e40af; border:1px solid #dbe3ff; margin-left:8px;
+  display:inline-block; font-size:.78rem; padding:4px 8px;
+  background:#eef2ff; color:#1e40af; border-radius:999px; margin-left:8px;
 }
-hr{ border:none; border-top:1px solid #e5e7eb; margin:24px 0; }
-
-/* Sidebar */
-section[data-testid="stSidebar"] > div { padding-top: 10px; }
-.sidebar-title{
-  font-weight:800; font-size:1rem; color:#0f172a; margin-bottom:8px; letter-spacing:.2px;
-}
-.sidebar-help{ color:#64748b; font-size:.9rem; margin-bottom:14px; }
-div[role="radiogroup"] label p { font-weight:600; }
-
-/* FAB (botão flutuante "Áreas") */
-.fab-areas{
-  position: fixed; left: 14px; bottom: 18px; z-index: 9999;
-  display: none; align-items: center; justify-content: center;
-  padding: 10px 14px; border-radius: 999px;
-  background: #111827; color: #fff; font-weight: 700; font-size: 14px;
-  box-shadow: 0 8px 18px rgba(0,0,0,.2); cursor: pointer;
-  border: 1px solid rgba(255,255,255,.08);
-}
-.fab-areas:hover{ transform: translateY(-1px); }
-@media (max-width: 900px){ .fab-areas{ left: 12px; bottom: 12px; } }
 </style>
-
-<!-- Botão flutuante para reabrir a sidebar quando escondida -->
-<div id="fab-areas" class="fab-areas">Áreas</div>
-
-<script>
-(function(){
-  const doc = window.document;
-  const btn = doc.getElementById('fab-areas');
-
-  function getSidebar(){ return doc.querySelector('section[data-testid="stSidebar"]'); }
-  function getToggle(){ return doc.querySelector('[data-testid="stSidebarCollapseButton"]'); }
-  function isSidebarVisible(){
-    const sb = getSidebar();
-    if(!sb) return false;
-    const style = getComputedStyle(sb);
-    return sb.offsetWidth > 0 && style.visibility !== 'hidden' && style.display !== 'none';
-  }
-  function updateFab(){ btn.style.display = isSidebarVisible() ? 'none' : 'flex'; }
-
-  btn.addEventListener('click', function(){
-    const toggle = getToggle();
-    if(toggle){ toggle.click(); }
-    setTimeout(updateFab, 250);
-  });
-
-  const obs = new MutationObserver(() => { updateFab(); });
-  obs.observe(doc.body, { attributes:true, childList:true, subtree:true });
-
-  setTimeout(updateFab, 500);
-})();
-</script>
 """, unsafe_allow_html=True)
+
 
 # ===================================
 # Banner
@@ -275,16 +209,6 @@ if logo_b64:
       <div class="logo-wrap">
         <img class="logo" src="data:image/png;base64,{logo_b64}" alt="Logo">
       </div>
-      <div>
-        <h1 class="title">🗂️ Portal Projetos Logística</h1>
-        <div class="subtitle">Selecione abaixo a ferramenta desejada. Os formulários abrem em uma nova aba.</div>
-      </div>
-    </div>
-    """, unsafe_allow_html=True)
-else:
-    st.markdown("""
-    <div class="hero">
-      <div class="logo-wrap"></div>
       <div>
         <h1 class="title">🗂️ Portal Projetos Logística</h1>
         <div class="subtitle">Selecione abaixo a ferramenta desejada. Os formulários abrem em uma nova aba.</div>
@@ -302,7 +226,7 @@ with st.sidebar:
     st.markdown('<div class="sidebar-title">ÁREAS</div>', unsafe_allow_html=True)
     setor = st.radio(
         "Selecione a área",
-        ["Cadastro", "Qualidade"],
+        ["Cadastro", "Qualidade", "Indicadores"],
         label_visibility="collapsed",
         index=0,
     )
@@ -310,17 +234,17 @@ with st.sidebar:
 
 
 # ===================================
-# Função para renderizar um card
+# Função de Card
 # ===================================
 def card(kicker: str, titulo: str, descricao: str, url: str, botao: str):
     st.markdown(
         f"""
         <div class="card">
-          <div class="kicker">{kicker}</div>
-          <p class="title-sm">{titulo}</p>
-          <p class="desc">{descricao}</p>
-          <a class="linkbtn" href="{url}" target="_blank" rel="noopener">{botao}</a>
-          <span class="badge">on-line</span>
+            <div class="kicker">{kicker}</div>
+            <p class="title-sm">{titulo}</p>
+            <p class="desc">{descricao}</p>
+            <a class="linkbtn" href="{url}" target="_blank">{botao}</a>
+            <span class="badge">on-line</span>
         </div>
         """,
         unsafe_allow_html=True
@@ -333,13 +257,12 @@ def card(kicker: str, titulo: str, descricao: str, url: str, botao: str):
 if setor == "Cadastro":
     st.subheader("Cadastro")
 
-    col1, col2 = st.columns(2, gap="large")
+    col1, col2 = st.columns(2)
     with col1:
         card(
             "Formulário",
             "Cadastro de Usuário WMS",
-            "Crie o usuário no padrão do WMS (turno, setor e regra de TC). "
-            "A planilha e notificações são atualizadas automaticamente pelo fluxo do N8N.",
+            "Crie o usuário no padrão do WMS (turno, setor e regra de TC).",
             URL_WMS,
             "Abrir formulário WMS",
         )
@@ -348,8 +271,7 @@ if setor == "Cadastro":
         card(
             "Formulário",
             "Cadastro de Localização",
-            "Solicite criação de endereços (PA/MP), com validação e preenchimento automático "
-            "de colunas e prateleiras. Integra direto com a planilha.",
+            "Solicite criação de endereços com validação automática.",
             URL_LOCAL,
             "Abrir formulário de Localização",
         )
@@ -357,59 +279,59 @@ if setor == "Cadastro":
 elif setor == "Qualidade":
     st.subheader("Qualidade")
 
-    # === LINHA 1: Painéis BI  |  Impressão / Plastificação ===
-    col1, col2 = st.columns(2, gap="large")
+    col1, col2 = st.columns(2)
     with col1:
         card(
             "Formulário",
-            "Paineis BI - Links Públicos",
-            "Acesse a planilha com os links de painéis BI públicos (Power BI, Tableau, etc.). "
-            "Os acessos estão consolidados e versionados pela equipe.",
-            "https://projetos-logistica.github.io/link_publico/",
-            "Abrir formulário",
+            "Formulário de Impressão / Plastificação",
+            "Solicitações de impressão e plastificação.",
+            URL_NOVO2,
+            "Abrir Formulário",
         )
 
     with col2:
         card(
             "Formulário",
-            "Formulário de Impressão / Plastificação",
-            "Acesse o formulário de solicitação de impressão / Plastificação.",
-            URL_NOVO2,
-            "Abrir Formulário de solicitação",
-        )
-
-    # === LINHA 2: Formulário de Visitas  |  Absenteísmo ===
-    col3, col4 = st.columns(2, gap="large")
-    with col3:
-        card(
-            "Formulário",
             "Formulário de Visitas",
-            "Formulário de Visitas para agendamento.",
+            "Agendamento de visitas.",
             URL_EXTRA,
             "Abrir Formulário de Visitas",
         )
 
-    with col4:
+    col3, _ = st.columns(2)
+    with col3:
         card(
             "Cadastro",
             "Absenteísmo",
-            "Acesse o ambiente para cadastro de colaboradores.",
+            "Ambiente para cadastro de colaboradores.",
             URL_NOVO,
             "Abrir Absenteísmo",
         )
 
+elif setor == "Indicadores":
+    st.subheader("Indicadores")
+
+    col1, _ = st.columns(2)
+    with col1:
+        card(
+            "Formulário",
+            "Paineis BI - Links Públicos",
+            "Acesse lista consolidada dos dashboards públicos.",
+            "https://projetos-logistica.github.io/link_publico/",
+            "Abrir Paineis BI",
+        )
 
 
 # ===================================
-# Espaçador e contato
+# Contato
 # ===================================
-st.markdown("<div style='height: 32px'></div>", unsafe_allow_html=True)
+st.markdown("<div style='height:32px'></div>", unsafe_allow_html=True)
 
 st.markdown("#### 📬 Fale com o time")
 st.markdown(
     f"""
 <div class="card">
-  <p class="desc" style="margin:0">
+  <p class="desc">
     Dúvidas, erros ou melhorias? Fale com a equipe de Projetos de Logística.<br/>
     E-mail: <a href="mailto:{CONTATO_EMAIL}">{CONTATO_EMAIL}</a>
   </p>
