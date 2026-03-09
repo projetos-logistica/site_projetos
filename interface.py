@@ -19,8 +19,9 @@ DEFAULT_URL_NOVO   = "https://cadastroteste.streamlit.app/"
 DEFAULT_URL_EXTRA  = "https://projetos-logistica.app.n8n.cloud/form/600021df-08ca-4c80-a21d-aba8de936842"
 DEFAULT_URL_NOVO2  = "https://projetos-logistica.app.n8n.cloud/form/1ce32498-70fe-4baf-9499-6ce127c10dac"
 
-# NOVO LINK (Qualidade)
+# LINKS (Qualidade)
 DEFAULT_URL_CONTROLE_COLETOR = "https://controle-coletor-azzas2154.streamlit.app/"
+DEFAULT_URL_SIMULADOR = "https://simulador-azzas2154.streamlit.app/"
 
 APP_DIR = Path(__file__).parent
 LOCAL_LOGO_PATH = APP_DIR / "assets" / "logo.png"  # fallback local
@@ -98,8 +99,9 @@ URL_NOVO = DEFAULT_URL_NOVO
 URL_EXTRA = DEFAULT_URL_EXTRA
 URL_NOVO2 = DEFAULT_URL_NOVO2
 
-# NOVO LINK (Qualidade)
+# LINKS (Qualidade)
 URL_CONTROLE_COLETOR = DEFAULT_URL_CONTROLE_COLETOR
+URL_SIMULADOR = DEFAULT_URL_SIMULADOR
 
 config_text = gh_get_text("portal/config.json")
 if config_text:
@@ -112,8 +114,9 @@ if config_text:
         URL_EXTRA = urls.get("extra", DEFAULT_URL_EXTRA)
         URL_NOVO2 = urls.get("novo2", DEFAULT_URL_NOVO2)
 
-        # NOVO LINK (Qualidade) - vindo do config.json (se existir)
+        # LINKS (Qualidade) - vindos do config.json (se existirem)
         URL_CONTROLE_COLETOR = urls.get("controle_coletor", DEFAULT_URL_CONTROLE_COLETOR)
+        URL_SIMULADOR = urls.get("simulador", DEFAULT_URL_SIMULADOR)
 
         CONTATO_EMAIL = cfg_json.get("contact_email", DEFAULT_CONTATO)
     except Exception:
@@ -308,7 +311,7 @@ elif setor == "Qualidade":
             "Abrir Formulário de Visitas",
         )
 
-    # Linha de baixo com 2 cards
+    # Linha 2
     col3, col4 = st.columns(2)
     with col3:
         card(
@@ -326,6 +329,17 @@ elif setor == "Qualidade":
             "Acesse a ferramenta de controle do coletor.",
             URL_CONTROLE_COLETOR,
             "Abrir Controle de Coletor",
+        )
+
+    # Linha 3
+    col5, col6 = st.columns(2)
+    with col5:
+        card(
+            "Ferramenta",
+            "Simulador de Fretes",
+            "Acesse o simulador de Fretes.",
+            URL_SIMULADOR,
+            "Abrir Simulador",
         )
 
 elif setor == "Indicadores":
